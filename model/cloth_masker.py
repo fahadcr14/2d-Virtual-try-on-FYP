@@ -5,6 +5,8 @@ import numpy as np
 import cv2
 from diffusers.image_processor import VaeImageProcessor
 import torch
+from skimage.transform import resize
+
 
 from model.SCHP import SCHP  # type: ignore
 from model.DensePose import DensePose  # type: ignore
@@ -235,6 +237,10 @@ class AutoMasker:
         mask_dense_area = cv2.dilate(mask_dense_area, dilate_kernel, iterations=2)
         mask_dense_area = cv2.resize(mask_dense_area.astype(np.uint8), None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST)
 
+        #new addition making it to same level 
+        weak_protect_area = resize(weak_protect_area, densepose_mask.shape, preserve_range=True).astype(bool)
+        background_area = resize(background_area, densepose_mask.shape, preserve_range=True).astype(bool)
+        mask_dense_area = resize(mask_dense_area, densepose_mask.shape, preserve_range=True).astype(bool)
 
         mask_area = (np.ones_like(densepose_mask) & (~weak_protect_area) & (~background_area)) | mask_dense_area
 
